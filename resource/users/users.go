@@ -4,32 +4,35 @@ import (
 	"context"
 	"errors"
 	"net/http"
+	"strconv"
 
 	"github.com/go-chi/chi"
 	"github.com/go-chi/jwtauth"
-	// "github.com/go-chi/render"
 
-	userModel "github.com/moqafi/harper/model/user"
+	usermodel "github.com/moqafi/harper/model/user"
+	userstorememory "github.com/moqafi/harper/store/user/memory"
 )
 
-func New() chi.Router {
-	rs := usersResource{}
+func New(store *userstorememory.Store) chi.Router {
+	rs := usersResource{store: store}
 	return rs.routes()
 }
 
-type usersResource struct{}
+type usersResource struct {
+	store *userstorememory.Store
+}
 
 // ctx middleware is used to load an user object from
 // the URL parameters passed through as the request. In case
 // the Article could not be found, we stop here and return a 404.
 func (rs usersResource) ctx(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		var usr *userModel.User
+		var usr *usermodel.User
 		var err error
 
-		if userID := chi.URLParam(r, "userId"); userID != "" && userID != "99" {
-			// article, err = dbGetArticle(articleID)
-			usr = &userModel.User{ID: userID}
+		if userID := chi.URLParam(r, "id"); userID != "" {
+			id, _ := strconv.ParseInt(userID, 10, 64)
+			usr = &usermodel.User{ID: id}
 		} else {
 			err = errors.New("User not found")
 		}
@@ -62,7 +65,7 @@ func (rs usersResource) routes() chi.Router {
 		r.Post("/", rs.Create) // POST /users - create new user and persist it
 	})
 
-	r.Route("/{userId:[0-9]+}", func(r chi.Router) {
+	r.Route("/{id:[0-9]+}", func(r chi.Router) {
 		// load user if found to request context
 		r.Use(rs.ctx)
 		r.Get("/", rs.Get) // GET /users/{id} - read a single todo by :id
@@ -90,14 +93,14 @@ func (rs usersResource) Get(w http.ResponseWriter, r *http.Request) {
 	// Assume if we've reach this far, we can access the article
 	// context because this handler is a child of the rs.ctx
 	// middleware. The worst case, the recoverer middleware will save us.
-	usr := r.Context().Value("user").(*userModel.User)
+	usr := r.Context().Value("user").(*usermodel.User)
 
 	// if err := render.Render(w, r, NewArticleResponse(article)); err != nil {
 	// 	render.Render(w, r, ErrRender(err))
 	// 	return
 	// }
 
-	w.Write([]byte("UserID is " + usr.ID))
+	w.Write([]byte("UserID is " + string(usr.ID)))
 }
 
 func (rs usersResource) Update(w http.ResponseWriter, r *http.Request) {

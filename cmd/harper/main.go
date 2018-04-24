@@ -81,3 +81,5 @@ func router() http.Handler {
 
 	return r
 }
+
+func setupDB()
