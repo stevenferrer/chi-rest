@@ -6,7 +6,7 @@ import (
 	usermodel "github.com/moqafi/harper/model/user"
 )
 
-func New() *Store {
+func New() usermodel.Storer {
 	users := make([]usermodel.User, 0)
 	return &Store{users: users}
 }
@@ -36,6 +36,7 @@ func (s *Store) Get(id int64) (usermodel.User, error) {
 	return user, nil
 }
 
+// what's better Create, or Add?
 func (s *Store) Create(u usermodel.User) error {
 	if s.isUserEmailInStore(u.Email) {
 		return errors.New("User email already in store")

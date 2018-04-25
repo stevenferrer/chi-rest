@@ -8,18 +8,25 @@ import (
 
 	"github.com/go-chi/chi"
 	"github.com/go-chi/jwtauth"
+	"github.com/go-chi/render"
+	urender "github.com/unrolled/render"
 
 	usermodel "github.com/moqafi/harper/model/user"
-	userstorememory "github.com/moqafi/harper/store/user/memory"
 )
 
-func New(store *userstorememory.Store) chi.Router {
-	rs := usersResource{store: store}
+func New(store usermodel.Storer) chi.Router {
+	u := usermodel.User{ID: 1, Email: "stevenf@moqafi.io"}
+	store.Create(u)
+	rs := usersResource{
+		store: store,
+		r:     urender.New(),
+	}
 	return rs.routes()
 }
 
 type usersResource struct {
-	store *userstorememory.Store
+	store usermodel.Storer
+	r     *urender.Render
 }
 
 // ctx middleware is used to load an user object from
@@ -27,28 +34,29 @@ type usersResource struct {
 // the Article could not be found, we stop here and return a 404.
 func (rs usersResource) ctx(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		var usr *usermodel.User
+		var usr usermodel.User
 		var err error
 
 		if userID := chi.URLParam(r, "id"); userID != "" {
 			id, _ := strconv.ParseInt(userID, 10, 64)
-			usr = &usermodel.User{ID: id}
+			// usr = &usermodel.User{ID: id}
+			usr, err = rs.store.Get(id)
+			if err != nil {
+				render.Render(w, r, ErrInvalidRequest(err))
+				return
+			}
 		} else {
-			err = errors.New("User not found")
-		}
-		// } else if articleSlug := chi.URLParam(r, "articleSlug"); articleSlug != "" {
-		// 	article, err = dbGetArticleBySlug(articleSlug)
-		// } else {
-		// 	render.Render(w, r, ErrNotFound)
-		// 	return
-		// }
-
-		if err != nil {
-			http.Error(w, http.StatusText(404), 404)
+			render.Render(w, r, ErrInvalidRequest(errors.New("User not found")))
 			return
 		}
 
-		ctx := context.WithValue(r.Context(), "user", usr)
+		if err != nil {
+			// http.Error(w, http.StatusText(404), 404)
+			render.Render(w, r, ErrRender(err))
+			return
+		}
+
+		ctx := context.WithValue(r.Context(), "user", &usr)
 		next.ServeHTTP(w, r.WithContext(ctx))
 	})
 }
@@ -82,11 +90,26 @@ func (rs usersResource) routes() chi.Router {
 }
 
 func (rs usersResource) List(w http.ResponseWriter, r *http.Request) {
-	w.Write([]byte("aaa list of users.."))
+	users, _ := rs.store.List()
+	rs.r.JSON(w, http.StatusOK, users)
 }
 
 func (rs usersResource) Create(w http.ResponseWriter, r *http.Request) {
-	w.Write([]byte("aaa create"))
+	data := &UserRequest{}
+	if err := render.Bind(r, data); err != nil {
+		render.Render(w, r, ErrInvalidRequest(err))
+		return
+	}
+
+	user := data.User
+
+	err := rs.store.Create(*user)
+	if err != nil {
+		render.Render(w, r, ErrInvalidRequest(err))
+		return
+	}
+	render.Status(r, http.StatusCreated)
+	render.Render(w, r, &UserResponse{Payload: user, Message: "User has been created"})
 }
 
 func (rs usersResource) Get(w http.ResponseWriter, r *http.Request) {
@@ -95,12 +118,7 @@ func (rs usersResource) Get(w http.ResponseWriter, r *http.Request) {
 	// middleware. The worst case, the recoverer middleware will save us.
 	usr := r.Context().Value("user").(*usermodel.User)
 
-	// if err := render.Render(w, r, NewArticleResponse(article)); err != nil {
-	// 	render.Render(w, r, ErrRender(err))
-	// 	return
-	// }
-
-	w.Write([]byte("UserID is " + string(usr.ID)))
+	rs.r.JSON(w, http.StatusOK, usr)
 }
 
 func (rs usersResource) Update(w http.ResponseWriter, r *http.Request) {

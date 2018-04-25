@@ -9,10 +9,12 @@ import (
 	"github.com/go-chi/chi"
 	"github.com/go-chi/chi/middleware"
 	"github.com/go-chi/jwtauth"
+	"github.com/go-chi/render"
 	"github.com/sirupsen/logrus"
 
 	"github.com/moqafi/harper/middleware/logger"
-	usersResource "github.com/moqafi/harper/resource/users"
+	usersresource "github.com/moqafi/harper/resource/users"
+	userstorememory "github.com/moqafi/harper/store/user/memory"
 )
 
 // TODO: Move this out of global scope
@@ -54,6 +56,7 @@ func router() http.Handler {
 	r.Use(middleware.RequestID)
 	r.Use(logger.NewStructuredLogger(loggerLogrus))
 	r.Use(middleware.Recoverer)
+	r.Use(render.SetContentType(render.ContentTypeJSON))
 
 	// Set a timeout value on the request context (ctx), that will signal
 	// through ctx.Done() that the request has timed out and further
@@ -69,7 +72,9 @@ func router() http.Handler {
 		// added by different routes. For example,
 		// some routes allow GET and disallow POST
 
-		r.Mount("/users", usersResource.New())
+		// initialize a new user store
+		userStore := userstorememory.New()
+		r.Mount("/users", usersresource.New(userStore))
 	})
 
 	// Public routes
@@ -81,5 +86,3 @@ func router() http.Handler {
 
 	return r
 }
-
-func setupDB()
