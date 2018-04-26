@@ -14,19 +14,27 @@ import (
 	usermodel "github.com/moqafi/harper/model/user"
 )
 
-func New(store usermodel.Storer) chi.Router {
-	u := usermodel.User{ID: 1, Email: "stevenf@moqafi.io"}
+// TODO: make resource handlers private
+
+func New(store usermodel.Storer, tokenAuth *jwtauth.JWTAuth) chi.Router {
+	u := usermodel.User{
+		ID:       1,
+		Email:    "stevenf@moqafi.io",
+		Password: "stevenf",
+	}
 	store.Create(u)
 	rs := usersResource{
-		store: store,
-		r:     urender.New(),
+		store:     store,
+		r:         urender.New(),
+		tokenAuth: tokenAuth,
 	}
 	return rs.routes()
 }
 
 type usersResource struct {
-	store usermodel.Storer
-	r     *urender.Render
+	store     usermodel.Storer
+	tokenAuth *jwtauth.JWTAuth
+	r         *urender.Render
 }
 
 // ctx middleware is used to load an user object from
@@ -62,39 +70,44 @@ func (rs usersResource) ctx(next http.Handler) http.Handler {
 }
 
 // Routes creates a REST router for the users resource
-func (rs usersResource) routes() chi.Router {
+func (rs *usersResource) routes() chi.Router {
 	r := chi.NewRouter()
 	// r.Use() // some middleware..
 
-	r.Get("/", rs.List) // GET /users - read a list of users
+	r.Get("/", rs.list)      // GET /users - read a list of users
+	r.Post("/auth", rs.auth) // jwt token auth
 
 	r.Route("/", func(r chi.Router) {
 		r.Use(jwtauth.Authenticator)
-		r.Post("/", rs.Create) // POST /users - create new user and persist it
+		r.Post("/", rs.create) // POST /users - create new user and persist it
 	})
 
 	r.Route("/{id:[0-9]+}", func(r chi.Router) {
 		// load user if found to request context
 		r.Use(rs.ctx)
-		r.Get("/", rs.Get) // GET /users/{id} - read a single todo by :id
+		r.Get("/", rs.get) // GET /users/{id} - read a single todo by :id
 
 		r.Route("/", func(r chi.Router) {
 			r.Use(jwtauth.Authenticator)
-			r.Post("/", rs.Create)
-			r.Put("/", rs.Update)    // PUT /users/{id} - update a single todo by :id
-			r.Delete("/", rs.Delete) // DELETE /users/{id} - delete a single todo by :id
+			r.Post("/", rs.create)
+			r.Put("/", rs.update)    // PUT /users/{id} - update a single todo by :id
+			r.Delete("/", rs.delete) // DELETE /users/{id} - delete a single todo by :id
 		})
 	})
 
 	return r
 }
 
-func (rs usersResource) List(w http.ResponseWriter, r *http.Request) {
+func (rs *usersResource) list(w http.ResponseWriter, r *http.Request) {
 	users, _ := rs.store.List()
-	rs.r.JSON(w, http.StatusOK, users)
+
+	if err := render.RenderList(w, r, NewUserListResponse(users)); err != nil {
+		render.Render(w, r, ErrRender(err))
+		return
+	}
 }
 
-func (rs usersResource) Create(w http.ResponseWriter, r *http.Request) {
+func (rs *usersResource) create(w http.ResponseWriter, r *http.Request) {
 	data := &UserRequest{}
 	if err := render.Bind(r, data); err != nil {
 		render.Render(w, r, ErrInvalidRequest(err))
@@ -109,10 +122,10 @@ func (rs usersResource) Create(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	render.Status(r, http.StatusCreated)
-	render.Render(w, r, &UserResponse{Payload: user, Message: "User has been created"})
+	render.Render(w, r, &UserResponse{User: user, Message: "User has been created"})
 }
 
-func (rs usersResource) Get(w http.ResponseWriter, r *http.Request) {
+func (rs *usersResource) get(w http.ResponseWriter, r *http.Request) {
 	// Assume if we've reach this far, we can access the article
 	// context because this handler is a child of the rs.ctx
 	// middleware. The worst case, the recoverer middleware will save us.
@@ -121,7 +134,7 @@ func (rs usersResource) Get(w http.ResponseWriter, r *http.Request) {
 	rs.r.JSON(w, http.StatusOK, usr)
 }
 
-func (rs usersResource) Update(w http.ResponseWriter, r *http.Request) {
+func (rs *usersResource) update(w http.ResponseWriter, r *http.Request) {
 	usr := r.Context().Value("user").(*usermodel.User)
 
 	data := &UserRequest{}
@@ -141,10 +154,10 @@ func (rs usersResource) Update(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	render.Status(r, http.StatusCreated)
-	render.Render(w, r, &UserResponse{Payload: user, Message: "User has been updated"})
+	render.Render(w, r, &UserResponse{User: user, Message: "User has been updated"})
 }
 
-func (rs usersResource) Delete(w http.ResponseWriter, r *http.Request) {
+func (rs *usersResource) delete(w http.ResponseWriter, r *http.Request) {
 	usr := r.Context().Value("user").(*usermodel.User)
 
 	err := rs.store.Delete(*usr)
@@ -154,5 +167,37 @@ func (rs usersResource) Delete(w http.ResponseWriter, r *http.Request) {
 	}
 
 	render.Status(r, http.StatusOK)
-	render.Render(w, r, &UserResponse{Payload: usr, Message: "User has been deleted"})
+	render.Render(w, r, &UserResponse{User: usr, Message: "User has been deleted"})
+}
+
+func (rs *usersResource) auth(w http.ResponseWriter, r *http.Request) {
+	data := &UserRequest{}
+	if err := render.Bind(r, data); err != nil {
+		render.Render(w, r, ErrInvalidRequest(err))
+		return
+	}
+
+	authUser := data.User
+
+	user, err := rs.store.GetByEmail(authUser.Email)
+	if err != nil {
+		render.Render(w, r, ErrInvalidRequest(err))
+		return
+	}
+
+	if user.Password != authUser.Password {
+		render.Render(w, r, ErrInvalidRequest(errors.New("User authentication failed")))
+		return
+	}
+
+	_, tokenString, err := rs.tokenAuth.Encode(jwtauth.Claims{
+		"userId": user.ID,
+		"email":  user.Email,
+	})
+	if err != nil {
+		render.Render(w, r, ErrRender(err))
+		return
+	}
+
+	rs.r.JSON(w, http.StatusOK, map[string]string{"token": tokenString})
 }

@@ -10,6 +10,7 @@ type UserRequest struct {
 	*usermodel.User
 }
 
+// Bind validates required fields and values
 func (ur *UserRequest) Bind(r *http.Request) error {
 	return nil
 }

@@ -37,6 +37,22 @@ func (s *Store) Get(id int64) (usermodel.User, error) {
 	return user, nil
 }
 
+func (s *Store) GetByEmail(email string) (usermodel.User, error) {
+	var user usermodel.User
+
+	if !s.isUserEmailInStore(email) {
+		return user, errors.New("User email not found in store")
+	}
+
+	for _, u := range s.users {
+		if u.Email == email {
+			user = u
+		}
+	}
+
+	return user, nil
+}
+
 // Create creates a new user
 func (s *Store) Create(u usermodel.User) error {
 	if s.isUserEmailInStore(u.Email) {

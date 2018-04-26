@@ -25,7 +25,10 @@ func init() {
 
 	// For debugging/example purposes, we generate and print
 	// a sample jwt token with claims `user_id:123` here:
-	_, tokenString, _ := tokenAuth.Encode(jwtauth.Claims{"user_id": 123})
+	_, tokenString, _ := tokenAuth.Encode(jwtauth.Claims{
+		"userId": 1,
+		"email":  "foo@bar.com",
+	})
 	log.Printf("DEBUG: a sample jwt is %s\n", tokenString)
 }
 
@@ -55,7 +58,6 @@ func router() http.Handler {
 	// A good base middleware stack
 	r.Use(middleware.RequestID)
 	r.Use(logger.NewStructuredLogger(loggerLogrus))
-	r.Use(middleware.NoCache)
 	r.Use(middleware.Recoverer)
 	r.Use(render.SetContentType(render.ContentTypeJSON))
 
@@ -63,6 +65,9 @@ func router() http.Handler {
 	// through ctx.Done() that the request has timed out and further
 	// processing should be stopped.
 	r.Use(middleware.Timeout(60 * time.Second))
+
+	// Initialize Model Stores
+	userStore := userstorememory.New()
 
 	// Protected routes
 	r.Group(func(r chi.Router) {
@@ -73,15 +78,17 @@ func router() http.Handler {
 		// added by different routes. For example,
 		// some routes allow GET and disallow POST
 
-		// initialize a new user store
-		userStore := userstorememory.New()
-		r.Mount("/users", usersresource.New(userStore))
+		r.Mount("/users", usersresource.New(userStore, tokenAuth))
 	})
 
 	// Public routes
 	r.Group(func(r chi.Router) {
 		r.Get("/", func(w http.ResponseWriter, r *http.Request) {
-			w.Write([]byte("Welcome Anonymous!"))
+			// Show API Banner
+		})
+
+		r.Get("/docs", func(w http.ResponseWriter, r *http.Request) {
+			// Show API Docs
 		})
 	})
 
