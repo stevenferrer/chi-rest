@@ -11,3 +11,4 @@ For example, **user/bbolt**, **user/memory** etc.
 ## TODO
 
 * Write tests for stores
+* Create error types

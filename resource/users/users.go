@@ -122,9 +122,37 @@ func (rs usersResource) Get(w http.ResponseWriter, r *http.Request) {
 }
 
 func (rs usersResource) Update(w http.ResponseWriter, r *http.Request) {
-	w.Write([]byte("aaa update"))
+	usr := r.Context().Value("user").(*usermodel.User)
+
+	data := &UserRequest{}
+	if err := render.Bind(r, data); err != nil {
+		render.Render(w, r, ErrInvalidRequest(err))
+		return
+	}
+
+	user := data.User
+
+	// set the original id
+	user.ID = usr.ID
+
+	err := rs.store.Update(*user)
+	if err != nil {
+		render.Render(w, r, ErrInvalidRequest(err))
+		return
+	}
+	render.Status(r, http.StatusCreated)
+	render.Render(w, r, &UserResponse{Payload: user, Message: "User has been updated"})
 }
 
 func (rs usersResource) Delete(w http.ResponseWriter, r *http.Request) {
-	w.Write([]byte("aaa delete"))
+	usr := r.Context().Value("user").(*usermodel.User)
+
+	err := rs.store.Delete(*usr)
+	if err != nil {
+		render.Render(w, r, ErrInvalidRequest(err))
+		return
+	}
+
+	render.Status(r, http.StatusOK)
+	render.Render(w, r, &UserResponse{Payload: usr, Message: "User has been deleted"})
 }

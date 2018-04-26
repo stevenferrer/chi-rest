@@ -1,7 +1,6 @@
 package memory
 
 import (
-	"log"
 	"testing"
 
 	usermodel "github.com/moqafi/harper/model/user"
@@ -23,19 +22,58 @@ func TestStore(t *testing.T) {
 		t.Errorf("len(users) should be 2")
 	}
 
-	log.Println(users)
+	t.Logf("%v\n", users)
 
 	err = store.Create(user1)
 	if err == nil {
 		t.Errorf("Error should be non nil")
 	}
 
-	log.Println(err)
+	t.Logf("%v\n", users)
 
 	u1, err := store.Get(1)
 	if err != nil {
 		t.Errorf("Error should be nil")
 	}
 
-	log.Println(u1)
+	err = store.Delete(u1)
+	users, _ = store.List()
+	if len(users) != 1 {
+		t.Errorf("Users should have a length of 1 after deleting")
+	}
+
+	t.Logf("%v\n", users)
+
+	u2, _ := store.Get(2)
+	u2.Email = "newuser2@example.com"
+
+	err = store.Update(u2)
+	if err != nil {
+		t.Errorf("Error should be non-nil")
+	}
+
+	newU2, _ := store.Get(2)
+
+	if newU2.Email != u2.Email {
+		t.Errorf("User email not updated")
+	}
+
+	users, _ = store.List()
+	t.Log(users)
+}
+
+func TestStoreCreate(t *testing.T) {
+
+}
+
+func TestStoreGet(t *testing.T) {
+
+}
+
+func TestStoreUpdate(t *testing.T) {
+
+}
+
+func TestStoreDelete(t *testing.T) {
+
 }

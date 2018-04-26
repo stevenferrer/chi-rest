@@ -1,6 +1,6 @@
 # Harper 
 
-Boilerplate for REST service using go-chi
+Boilerplate for REST service using go-chi. This project uses the concept of database agnostic user models by implementing storer interface for the model. 
 
 ## Running
 

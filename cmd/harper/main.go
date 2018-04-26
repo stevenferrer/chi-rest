@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"log"
 	"net/http"
 	"time"
@@ -21,19 +20,20 @@ import (
 var tokenAuth *jwtauth.JWTAuth
 
 func init() {
-	tokenAuth = jwtauth.New("HS256", []byte("secret"), nil)
+	var signKey = []byte("this is a secret")
+	tokenAuth = jwtauth.New("HS256", signKey, nil)
 
 	// For debugging/example purposes, we generate and print
 	// a sample jwt token with claims `user_id:123` here:
 	_, tokenString, _ := tokenAuth.Encode(jwtauth.Claims{"user_id": 123})
-	fmt.Printf("DEBUG: a sample jwt is %s\n\n", tokenString)
+	log.Printf("DEBUG: a sample jwt is %s\n", tokenString)
 }
 
 func main() {
 	port := ":3333"
 	host := "localhost"
 	addr := host + port
-	log.Printf("Server running on %s\n\n", addr)
+	log.Printf("Server running on %s\n", addr)
 	err := http.ListenAndServe(addr, router())
 	if err != nil {
 		log.Fatal(err)
@@ -55,6 +55,7 @@ func router() http.Handler {
 	// A good base middleware stack
 	r.Use(middleware.RequestID)
 	r.Use(logger.NewStructuredLogger(loggerLogrus))
+	r.Use(middleware.NoCache)
 	r.Use(middleware.Recoverer)
 	r.Use(render.SetContentType(render.ContentTypeJSON))
 
@@ -68,7 +69,7 @@ func router() http.Handler {
 		// Seekd, verify and validate JWT tokens
 		r.Use(jwtauth.Verifier(tokenAuth))
 
-		// Note: jwtauth.Authentiator should be
+		// Note: jwtauth.Authenticator should be
 		// added by different routes. For example,
 		// some routes allow GET and disallow POST
 

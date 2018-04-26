@@ -6,6 +6,7 @@ import (
 	usermodel "github.com/moqafi/harper/model/user"
 )
 
+// New returns a new usermodel.Storer
 func New() usermodel.Storer {
 	users := make([]usermodel.User, 0)
 	return &Store{users: users}
@@ -36,7 +37,7 @@ func (s *Store) Get(id int64) (usermodel.User, error) {
 	return user, nil
 }
 
-// what's better Create, or Add?
+// Create creates a new user
 func (s *Store) Create(u usermodel.User) error {
 	if s.isUserEmailInStore(u.Email) {
 		return errors.New("User email already in store")
@@ -47,11 +48,30 @@ func (s *Store) Create(u usermodel.User) error {
 	return nil
 }
 
+// Update updates an existing user
 func (s *Store) Update(u usermodel.User) error {
+
+	if !s.isUserIDInStore(u.ID) {
+		return errors.New("User not found in store")
+	}
+
+	idx := s.getUserIndex(u.ID)
+
+	s.users[idx] = u
+
 	return nil
 }
 
 func (s *Store) Delete(u usermodel.User) error {
+	if !s.isUserIDInStore(u.ID) {
+		return errors.New("User not found in store")
+	}
+
+	idx := s.getUserIndex(u.ID)
+
+	// delete item from slice trick
+	s.users = append(s.users[:idx], s.users[idx+1:]...)
+
 	return nil
 }
 
@@ -80,4 +100,14 @@ func (s *Store) isUserEmailInStore(email string) bool {
 	}
 
 	return false
+}
+
+func (s *Store) getUserIndex(id int64) int64 {
+	for idx, usr := range s.users {
+		if usr.ID == id {
+			return int64(idx)
+		}
+	}
+
+	return -1
 }
