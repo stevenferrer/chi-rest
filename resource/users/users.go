@@ -3,6 +3,7 @@ package users
 import (
 	"context"
 	"errors"
+	"fmt"
 	"net/http"
 	"strconv"
 
@@ -16,13 +17,29 @@ import (
 
 // TODO: make resource handlers private
 
-func New(store usermodel.Storer, tokenAuth *jwtauth.JWTAuth) chi.Router {
-	u := usermodel.User{
-		ID:       1,
-		Email:    "stevenf@moqafi.io",
-		Password: "stevenf",
+type key string
+
+const userKey key = "user"
+
+func createDummyUsers() []usermodel.User {
+	var users []usermodel.User
+	for i := 0; i < 10; i++ {
+		u := usermodel.User{
+			Email:    fmt.Sprintf("sample%d@example.com", i+1),
+			Password: fmt.Sprintf("sample%d", i+1),
+		}
+		users = append(users, u)
 	}
-	store.Create(u)
+
+	return users
+}
+
+func New(store usermodel.Storer, tokenAuth *jwtauth.JWTAuth) chi.Router {
+	users := createDummyUsers()
+	for _, u := range users {
+		store.Create(u)
+	}
+
 	rs := usersResource{
 		store:     store,
 		r:         urender.New(),
@@ -48,7 +65,7 @@ func (rs usersResource) ctx(next http.Handler) http.Handler {
 		if userID := chi.URLParam(r, "id"); userID != "" {
 			id, _ := strconv.ParseInt(userID, 10, 64)
 			// usr = &usermodel.User{ID: id}
-			usr, err = rs.store.Get(id)
+			usr, err = rs.store.GetByID(id)
 			if err != nil {
 				render.Render(w, r, ErrInvalidRequest(err))
 				return
@@ -64,7 +81,7 @@ func (rs usersResource) ctx(next http.Handler) http.Handler {
 			return
 		}
 
-		ctx := context.WithValue(r.Context(), "user", &usr)
+		ctx := context.WithValue(r.Context(), userKey, &usr)
 		next.ServeHTTP(w, r.WithContext(ctx))
 	})
 }
@@ -103,7 +120,6 @@ func (rs *usersResource) list(w http.ResponseWriter, r *http.Request) {
 
 	if err := render.RenderList(w, r, NewUserListResponse(users)); err != nil {
 		render.Render(w, r, ErrRender(err))
-		return
 	}
 }
 
@@ -126,16 +142,18 @@ func (rs *usersResource) create(w http.ResponseWriter, r *http.Request) {
 }
 
 func (rs *usersResource) get(w http.ResponseWriter, r *http.Request) {
-	// Assume if we've reach this far, we can access the article
+	// Assume if we've reach this far, we can access the user
 	// context because this handler is a child of the rs.ctx
 	// middleware. The worst case, the recoverer middleware will save us.
-	usr := r.Context().Value("user").(*usermodel.User)
+	usr := r.Context().Value(userKey).(*usermodel.User)
 
-	rs.r.JSON(w, http.StatusOK, usr)
+	if err := render.Render(w, r, NewUserResponse(*usr)); err != nil {
+		render.Render(w, r, ErrRender(err))
+	}
 }
 
 func (rs *usersResource) update(w http.ResponseWriter, r *http.Request) {
-	usr := r.Context().Value("user").(*usermodel.User)
+	usr := r.Context().Value(userKey).(*usermodel.User)
 
 	data := &UserRequest{}
 	if err := render.Bind(r, data); err != nil {
@@ -158,7 +176,7 @@ func (rs *usersResource) update(w http.ResponseWriter, r *http.Request) {
 }
 
 func (rs *usersResource) delete(w http.ResponseWriter, r *http.Request) {
-	usr := r.Context().Value("user").(*usermodel.User)
+	usr := r.Context().Value(userKey).(*usermodel.User)
 
 	err := rs.store.Delete(*usr)
 	if err != nil {

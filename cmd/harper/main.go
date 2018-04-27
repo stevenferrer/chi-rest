@@ -1,4 +1,4 @@
-package main
+package harper
 
 import (
 	"log"
@@ -32,7 +32,8 @@ func init() {
 	log.Printf("DEBUG: a sample jwt is %s\n", tokenString)
 }
 
-func main() {
+// Run starts the application
+func Run() {
 	port := ":3333"
 	host := "localhost"
 	addr := host + port
@@ -41,6 +42,7 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
+
 }
 
 func router() http.Handler {
@@ -84,7 +86,7 @@ func router() http.Handler {
 	// Public routes
 	r.Group(func(r chi.Router) {
 		r.Get("/", func(w http.ResponseWriter, r *http.Request) {
-			// Show API Banner
+			// Show API Banner or something
 		})
 
 		r.Get("/docs", func(w http.ResponseWriter, r *http.Request) {

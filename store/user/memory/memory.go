@@ -21,7 +21,7 @@ func (s *Store) List(filter ...usermodel.Filter) ([]usermodel.User, error) {
 	return s.users, nil
 }
 
-func (s *Store) Get(id int64) (usermodel.User, error) {
+func (s *Store) GetByID(id int64) (usermodel.User, error) {
 	var user usermodel.User
 
 	if !s.isUserIDInStore(id) {
@@ -58,6 +58,9 @@ func (s *Store) Create(u usermodel.User) error {
 	if s.isUserEmailInStore(u.Email) {
 		return errors.New("User email already in store")
 	}
+
+	// assign a unique ID
+	u.ID = int64(len(s.users)) + 1
 
 	s.users = append(s.users, u)
 

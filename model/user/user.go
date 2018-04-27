@@ -9,7 +9,7 @@ type User struct {
 // Storer shall be implemented by database stores
 type Storer interface {
 	List(filter ...Filter) ([]User, error)
-	Get(id int64) (User, error)
+	GetByID(id int64) (User, error)
 	GetByEmail(email string) (User, error)
 	Create(User) error
 	Update(User) error
