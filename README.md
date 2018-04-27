@@ -22,3 +22,4 @@ Boilerplate for REST service using go-chi. This project uses the concept of data
 
 * Model generator for a given database
 * Response and Request management package
+* model and store boilerplate generator

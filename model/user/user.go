@@ -11,8 +11,12 @@ type Storer interface {
 	List(filter ...Filter) ([]User, error)
 	GetByID(id int64) (User, error)
 	GetByEmail(email string) (User, error)
+
+	// in create, update, and delete methods
+	// should we return the user id?
 	Create(User) error
-	Update(User) error
+	UpdateByID(id int64, u User) error
+	UpdateByEmail(email string, u User) error
 	Delete(User) error
 }
 

@@ -1,6 +1,8 @@
 package harper
 
 import (
+	"database/sql"
+	"fmt"
 	"log"
 	"net/http"
 	"time"
@@ -96,3 +98,34 @@ func router() http.Handler {
 
 	return r
 }
+
+// func getUserModelDB() *sql.DB {
+// 	connStr := fmt.Sprintf(
+// 		"server=%s;user id=%s;password=%s;database=%s;",
+// 		"localhost\\mssql2016express",
+// 		"sa",
+// 		"sa",
+// 		"harper",
+// 	)
+// 	db, err := sql.Open("mssql", connStr)
+// 	if err != nil {
+// 		log.Fatal(err)
+// 	}
+
+// 	var (
+// 		sqlVersion string
+// 	)
+// 	rows, err := db.Query("select @@version")
+// 	if err != nil {
+// 		log.Fatal(err)
+// 	}
+// 	for rows.Next() {
+// 		err := rows.Scan(&sqlVersion)
+// 		if err != nil {
+// 			log.Fatal(err)
+// 		}
+// 		log.Println(sqlVersion)
+// 	}
+
+// 	return db
+// }

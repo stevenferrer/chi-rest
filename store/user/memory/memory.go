@@ -68,13 +68,25 @@ func (s *Store) Create(u usermodel.User) error {
 }
 
 // Update updates an existing user
-func (s *Store) Update(u usermodel.User) error {
+func (s *Store) UpdateByID(id int64, u usermodel.User) error {
 
-	if !s.isUserIDInStore(u.ID) {
+	if !s.isUserIDInStore(id) {
 		return errors.New("User not found in store")
 	}
 
-	idx := s.getUserIndex(u.ID)
+	idx := s.getUserIndexByID(id)
+
+	s.users[idx] = u
+
+	return nil
+}
+
+func (s *Store) UpdateByEmail(email string, u usermodel.User) error {
+	if !s.isUserEmailInStore(email) {
+		return errors.New("User not found in store")
+	}
+
+	idx := s.getUserIndexByEmail(email)
 
 	s.users[idx] = u
 
@@ -86,7 +98,7 @@ func (s *Store) Delete(u usermodel.User) error {
 		return errors.New("User not found in store")
 	}
 
-	idx := s.getUserIndex(u.ID)
+	idx := s.getUserIndexByID(u.ID)
 
 	// delete item from slice trick
 	s.users = append(s.users[:idx], s.users[idx+1:]...)
@@ -121,9 +133,19 @@ func (s *Store) isUserEmailInStore(email string) bool {
 	return false
 }
 
-func (s *Store) getUserIndex(id int64) int64 {
+func (s *Store) getUserIndexByID(id int64) int64 {
 	for idx, usr := range s.users {
 		if usr.ID == id {
+			return int64(idx)
+		}
+	}
+
+	return -1
+}
+
+func (s *Store) getUserIndexByEmail(email string) int64 {
+	for idx, usr := range s.users {
+		if usr.Email == email {
 			return int64(idx)
 		}
 	}

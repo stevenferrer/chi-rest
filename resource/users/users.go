@@ -166,7 +166,7 @@ func (rs *usersResource) update(w http.ResponseWriter, r *http.Request) {
 	// set the original id
 	user.ID = usr.ID
 
-	err := rs.store.Update(*user)
+	err := rs.store.UpdateByID(user.ID, *user)
 	if err != nil {
 		render.Render(w, r, ErrInvalidRequest(err))
 		return

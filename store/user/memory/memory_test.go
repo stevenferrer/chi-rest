@@ -6,74 +6,104 @@ import (
 	usermodel "github.com/moqafi/harper/model/user"
 )
 
-func TestStore(t *testing.T) {
+func TestStoreList(t *testing.T) {
 	store := New()
-	var err error
-
-	user1 := usermodel.User{ID: 1, Email: "user1@example.com"}
-	user2 := usermodel.User{ID: 2, Email: "user2@example.com"}
+	user1 := usermodel.User{
+		Email:    "user1@example.com",
+		Password: "user1",
+	}
+	user2 := usermodel.User{
+		Email:    "user2@example.com",
+		Password: "user2",
+	}
 
 	_ = store.Create(user1)
 	_ = store.Create(user2)
 
-	users, _ := store.List()
+	users, err := store.List()
+	if err != nil {
+		t.Error(err)
+	}
 
 	if len(users) != 2 {
-		t.Errorf("len(users) should be 2")
+		t.Fatal("User len expected to be 2")
 	}
-
-	t.Logf("%v\n", users)
-
-	err = store.Create(user1)
-	if err == nil {
-		t.Errorf("Error should be non nil")
-	}
-
-	t.Logf("%v\n", users)
-
-	u1, err := store.Get(1)
-	if err != nil {
-		t.Errorf("Error should be nil")
-	}
-
-	err = store.Delete(u1)
-	users, _ = store.List()
-	if len(users) != 1 {
-		t.Errorf("Users should have a length of 1 after deleting")
-	}
-
-	t.Logf("%v\n", users)
-
-	u2, _ := store.Get(2)
-	u2.Email = "newuser2@example.com"
-
-	err = store.Update(u2)
-	if err != nil {
-		t.Errorf("Error should be non-nil")
-	}
-
-	newU2, _ := store.Get(2)
-
-	if newU2.Email != u2.Email {
-		t.Errorf("User email not updated")
-	}
-
-	users, _ = store.List()
-	t.Log(users)
 }
 
 func TestStoreCreate(t *testing.T) {
+	store := New()
+	user1 := usermodel.User{
+		Email:    "user1@example.com",
+		Password: "user1",
+	}
+	user2 := usermodel.User{
+		Email:    "user2@example.com",
+		Password: "user2",
+	}
 
+	_ = store.Create(user1)
+	_ = store.Create(user2)
+
+	users, err := store.List()
+	if err != nil {
+		t.Error(err)
+	}
+
+	if len(users) != 2 {
+		t.Fatal("User len expected to be 2")
+	}
 }
 
 func TestStoreGet(t *testing.T) {
+	store := New()
+	var err error
 
+	user1 := usermodel.User{Email: "user1@example.com", Password: "user1"}
+	_ = store.Create(user1)
+
+	sameUser1, err := store.GetByEmail(user1.Email)
+	if err != nil {
+		t.Error(err)
+	}
+
+	if user1.Email != sameUser1.Email {
+		t.Fatal("user1 should have the same email with sameUser1")
+	}
 }
 
 func TestStoreUpdate(t *testing.T) {
+	store := New()
 
+	user1 := usermodel.User{Email: "user1@example.com", Password: "user1"}
+	_ = store.Create(user1)
+
+	user1.Password = "newuser1password"
+
+	err := store.UpdateByEmail(user1.Email, user1)
+
+	newUser1, err := store.GetByEmail(user1.Email)
+	if err != nil {
+		t.Error(err)
+	}
+
+	if user1.Password != newUser1.Password {
+		t.Fatal("user should have the same password with newUser1")
+	}
 }
 
 func TestStoreDelete(t *testing.T) {
+	store := New()
 
+	user1 := usermodel.User{Email: "user1@example.com", Password: "user1"}
+	_ = store.Create(user1)
+
+	err := store.Delete(user1)
+	if err == nil {
+		t.Error(err)
+	}
+
+	_, err = store.GetByID(user1.ID)
+	if err == nil {
+		t.Error("Expecting error because user1 is not in the store")
+	}
 }
