@@ -1,10 +1,12 @@
 package harper
 
 import (
-	"database/sql"
 	"fmt"
 	"log"
 	"net/http"
+	"os"
+	"os/signal"
+	"syscall"
 	"time"
 
 	"github.com/go-chi/chi"
@@ -39,12 +41,20 @@ func Run() {
 	port := ":3333"
 	host := "localhost"
 	addr := host + port
-	log.Printf("Server running on %s\n", addr)
-	err := http.ListenAndServe(addr, router())
-	if err != nil {
-		log.Fatal(err)
-	}
 
+	errs := make(chan error)
+	go func() {
+		c := make(chan os.Signal)
+		signal.Notify(c, syscall.SIGINT, syscall.SIGTERM)
+		errs <- fmt.Errorf("%s", <-c)
+	}()
+
+	go func() {
+		log.Printf("Server running on %s\n", addr)
+		errs <- http.ListenAndServe(addr, router())
+	}()
+
+	log.Fatalf("exit: %s", <-errs)
 }
 
 func router() http.Handler {
