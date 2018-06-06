@@ -3,6 +3,8 @@ package memory
 import (
 	"testing"
 
+	"golang.org/x/crypto/bcrypt"
+
 	usermodel "github.com/moqafi/harper/model/user"
 )
 
@@ -10,15 +12,15 @@ func TestStoreList(t *testing.T) {
 	store := New()
 	user1 := usermodel.User{
 		Email:    "user1@example.com",
-		Password: "user1",
+		Password: []byte("user1"),
 	}
 	user2 := usermodel.User{
 		Email:    "user2@example.com",
-		Password: "user2",
+		Password: []byte("user2"),
 	}
 
-	_ = store.Create(user1)
-	_ = store.Create(user2)
+	user1, _ = store.Create(user1)
+	user2, _ = store.Create(user2)
 
 	users, err := store.List()
 	if err != nil {
@@ -34,15 +36,15 @@ func TestStoreCreate(t *testing.T) {
 	store := New()
 	user1 := usermodel.User{
 		Email:    "user1@example.com",
-		Password: "user1",
+		Password: []byte("user1"),
 	}
 	user2 := usermodel.User{
 		Email:    "user2@example.com",
-		Password: "user2",
+		Password: []byte("user2"),
 	}
 
-	_ = store.Create(user1)
-	_ = store.Create(user2)
+	user1, _ = store.Create(user1)
+	user2, _ = store.Create(user2)
 
 	users, err := store.List()
 	if err != nil {
@@ -58,8 +60,11 @@ func TestStoreGet(t *testing.T) {
 	store := New()
 	var err error
 
-	user1 := usermodel.User{Email: "user1@example.com", Password: "user1"}
-	_ = store.Create(user1)
+	user1 := usermodel.User{
+		Email:    "user1@example.com",
+		Password: []byte("user1"),
+	}
+	user1, _ = store.Create(user1)
 
 	sameUser1, err := store.GetByEmail(user1.Email)
 	if err != nil {
@@ -74,31 +79,36 @@ func TestStoreGet(t *testing.T) {
 func TestStoreUpdate(t *testing.T) {
 	store := New()
 
-	user1 := usermodel.User{Email: "user1@example.com", Password: "user1"}
-	_ = store.Create(user1)
+	user1 := usermodel.User{
+		Email:    "user1@example.com",
+		Password: []byte("user1"),
+	}
+	user1, _ = store.Create(user1)
 
-	user1.Password = "newuser1password"
+	newPwd := "newuser1password"
+	user1.Password = []byte(newPwd)
 
-	err := store.UpdateByEmail(user1.Email, user1)
-
-	newUser1, err := store.GetByEmail(user1.Email)
+	newUser1, err := store.UpdateByEmail(user1.Email, user1)
 	if err != nil {
-		t.Error(err)
+		t.Fatal(err)
 	}
 
-	if user1.Password != newUser1.Password {
-		t.Fatal("user should have the same password with newUser1")
+	if err := bcrypt.CompareHashAndPassword(newUser1.Password, []byte(newPwd)); err != nil {
+		t.Fatal("password was not updated", err)
 	}
 }
 
 func TestStoreDelete(t *testing.T) {
 	store := New()
 
-	user1 := usermodel.User{Email: "user1@example.com", Password: "user1"}
-	_ = store.Create(user1)
+	user1 := usermodel.User{
+		Email:    "user1@example.com",
+		Password: []byte("user1"),
+	}
+	user1, _ = store.Create(user1)
 
-	err := store.Delete(user1)
-	if err == nil {
+	user1, err := store.Delete(user1)
+	if err != nil {
 		t.Error(err)
 	}
 

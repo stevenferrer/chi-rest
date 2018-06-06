@@ -3,6 +3,8 @@ package memory
 import (
 	"errors"
 
+	"golang.org/x/crypto/bcrypt"
+
 	usermodel "github.com/moqafi/harper/model/user"
 )
 
@@ -21,11 +23,11 @@ func (s *Store) List(filter ...usermodel.Filter) ([]usermodel.User, error) {
 	return s.users, nil
 }
 
-func (s *Store) GetByID(id int64) (usermodel.User, error) {
+func (s *Store) GetByID(id uint64) (usermodel.User, error) {
 	var user usermodel.User
 
 	if !s.isUserIDInStore(id) {
-		return user, errors.New("User id not found in store")
+		return user, errors.New("User not found in store")
 	}
 
 	for _, u := range s.users {
@@ -41,7 +43,7 @@ func (s *Store) GetByEmail(email string) (usermodel.User, error) {
 	var user usermodel.User
 
 	if !s.isUserEmailInStore(email) {
-		return user, errors.New("User email not found in store")
+		return user, errors.New("User not found in store")
 	}
 
 	for _, u := range s.users {
@@ -54,65 +56,91 @@ func (s *Store) GetByEmail(email string) (usermodel.User, error) {
 }
 
 // Create creates a new user
-func (s *Store) Create(u usermodel.User) error {
+func (s *Store) Create(u usermodel.User) (usermodel.User, error) {
+	var user usermodel.User
 	if s.isUserEmailInStore(u.Email) {
-		return errors.New("User email already in store")
+		return user, errors.New("User email already in store")
 	}
 
 	// assign a unique ID
-	u.ID = int64(len(s.users)) + 1
+	u.ID = uint64(len(s.users)) + 1
+	hash, err := bcrypt.GenerateFromPassword(u.Password, bcrypt.DefaultCost)
+	if err != nil {
+		return user, err
+	}
+	u.Password = hash
 
 	s.users = append(s.users, u)
 
-	return nil
+	user = u
+
+	return user, nil
 }
 
 // Update updates an existing user
-func (s *Store) UpdateByID(id int64, u usermodel.User) error {
+func (s *Store) UpdateByID(id uint64, u usermodel.User) (usermodel.User, error) {
+	var user usermodel.User
 
 	if !s.isUserIDInStore(id) {
-		return errors.New("User not found in store")
+		return user, errors.New("User not found in store")
 	}
 
 	idx := s.getUserIndexByID(id)
 
+	hash, err := bcrypt.GenerateFromPassword(u.Password, bcrypt.DefaultCost)
+	if err != nil {
+		return user, err
+	}
+	u.Password = hash
+
 	s.users[idx] = u
 
-	return nil
+	user = u
+
+	return user, nil
 }
 
-func (s *Store) UpdateByEmail(email string, u usermodel.User) error {
+func (s *Store) UpdateByEmail(email string, u usermodel.User) (usermodel.User, error) {
+	var user usermodel.User
+
 	if !s.isUserEmailInStore(email) {
-		return errors.New("User not found in store")
+		return user, errors.New("User not found in store")
 	}
 
 	idx := s.getUserIndexByEmail(email)
 
+	hash, err := bcrypt.GenerateFromPassword(u.Password, bcrypt.DefaultCost)
+	if err != nil {
+		return user, err
+	}
+	u.Password = hash
+
 	s.users[idx] = u
 
-	return nil
+	user = u
+
+	return user, nil
 }
 
-func (s *Store) Delete(u usermodel.User) error {
+func (s *Store) Delete(u usermodel.User) (usermodel.User, error) {
+	var user usermodel.User
 	if !s.isUserIDInStore(u.ID) {
-		return errors.New("User not found in store")
+		return user, errors.New("User not found in store")
 	}
 
 	idx := s.getUserIndexByID(u.ID)
 
+	// get user to be deleted
+	user = s.users[idx]
+
 	// delete item from slice trick
 	s.users = append(s.users[:idx], s.users[idx+1:]...)
 
-	return nil
-}
-
-// Setup does the database setup for the User model
-func (s *Store) Setup() error {
-	return nil
+	return user, nil
 }
 
 // isUserIDInStore returns true if user id is already in the store
-func (s *Store) isUserIDInStore(id int64) bool {
+func (s *Store) isUserIDInStore(id uint64) bool {
 	for _, usr := range s.users {
 		if usr.ID == id {
 			return true
@@ -133,22 +161,22 @@ func (s *Store) isUserEmailInStore(email string) bool {
 	return false
 }
 
-func (s *Store) getUserIndexByID(id int64) int64 {
+func (s *Store) getUserIndexByID(id uint64) uint64 {
 	for idx, usr := range s.users {
 		if usr.ID == id {
-			return int64(idx)
+			return uint64(idx)
 		}
 	}
 
-	return -1
+	return 0
 }
 
-func (s *Store) getUserIndexByEmail(email string) int64 {
+func (s *Store) getUserIndexByEmail(email string) uint64 {
 	for idx, usr := range s.users {
 		if usr.Email == email {
-			return int64(idx)
+			return uint64(idx)
 		}
 	}
 
-	return -1
+	return 0
 }

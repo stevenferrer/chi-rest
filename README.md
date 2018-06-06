@@ -12,6 +12,8 @@ Boilerplate for REST service using go-chi. This project uses the concept of data
 	* github.com/sirupsen/logrus
 	* github.com/unrolled/render
 	* github.com/josharian/impl - interface implementation generator
+	* github.com/jinzhu/gorm - ORM
+	* github.com/go-gormigrate/gormigrate - database migration
 
 ## Running
 `go get` all dependencies before anything else then run:
@@ -22,7 +24,11 @@ Boilerplate for REST service using go-chi. This project uses the concept of data
 
 * Model generator for a given database
 * Response and Request management package
-* Storer interface implemetation generators
+* Stub generator for resources
+* Storer interface implemetation generators - impl
+* Store implementation tests stub generator
+* Database migration - gormigrate (inside store implementations)
+* ORM - gorm
 	
 ### Generating Storer interface stub
 Below is an example of generating Storer interface sub. 

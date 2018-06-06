@@ -35,10 +35,10 @@ func createDummyUsers() []usermodel.User {
 }
 
 func New(store usermodel.Storer, tokenAuth *jwtauth.JWTAuth) chi.Router {
-	users := createDummyUsers()
-	for _, u := range users {
-		store.Create(u)
-	}
+	// users := createDummyUsers()
+	// for _, u := range users {
+	// 	store.Create(u)
+	// }
 
 	rs := usersResource{
 		store:     store,
@@ -65,7 +65,7 @@ func (rs usersResource) ctx(next http.Handler) http.Handler {
 		if userID := chi.URLParam(r, "id"); userID != "" {
 			id, _ := strconv.ParseInt(userID, 10, 64)
 			// usr = &usermodel.User{ID: id}
-			usr, err = rs.store.GetByID(id)
+			usr, err = rs.store.GetByID(uint64(id))
 			if err != nil {
 				render.Render(w, r, ErrInvalidRequest(err))
 				return
@@ -95,7 +95,8 @@ func (rs *usersResource) routes() chi.Router {
 	r.Post("/auth", rs.auth) // jwt token auth
 
 	r.Route("/", func(r chi.Router) {
-		r.Use(jwtauth.Authenticator)
+		//uncomment to enable jwt
+		// r.Use(jwtauth.Authenticator)
 		r.Post("/", rs.create) // POST /users - create new user and persist it
 	})
 
@@ -105,7 +106,8 @@ func (rs *usersResource) routes() chi.Router {
 		r.Get("/", rs.get) // GET /users/{id} - read a single todo by :id
 
 		r.Route("/", func(r chi.Router) {
-			r.Use(jwtauth.Authenticator)
+			//uncomment to enable jwt
+			// r.Use(jwtauth.Authenticator)
 			r.Post("/", rs.create)
 			r.Put("/", rs.update)    // PUT /users/{id} - update a single todo by :id
 			r.Delete("/", rs.delete) // DELETE /users/{id} - delete a single todo by :id

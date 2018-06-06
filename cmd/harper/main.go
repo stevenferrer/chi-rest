@@ -13,11 +13,13 @@ import (
 	"github.com/go-chi/chi/middleware"
 	"github.com/go-chi/jwtauth"
 	"github.com/go-chi/render"
+	"github.com/jinzhu/gorm"
+	_ "github.com/jinzhu/gorm/dialects/mssql"
 	"github.com/sirupsen/logrus"
 
 	"github.com/moqafi/harper/middleware/logger"
 	usersresource "github.com/moqafi/harper/resource/users"
-	userstorememory "github.com/moqafi/harper/store/user/memory"
+	userstore "github.com/moqafi/harper/store/user/mssql"
 )
 
 // TODO: Move this out of global scope
@@ -51,13 +53,15 @@ func Run() {
 
 	go func() {
 		log.Printf("Server running on %s\n", addr)
-		errs <- http.ListenAndServe(addr, router())
+		db := getUserModelDB()
+		defer db.Close()
+		errs <- http.ListenAndServe(addr, router(db))
 	}()
 
 	log.Fatalf("exit: %s", <-errs)
 }
 
-func router() http.Handler {
+func router(db *gorm.DB) http.Handler {
 	r := chi.NewRouter()
 
 	// Setup the logger backend using sirupsen/logrus and configure
@@ -80,18 +84,17 @@ func router() http.Handler {
 	// processing should be stopped.
 	r.Use(middleware.Timeout(60 * time.Second))
 
-	// Initialize Model Stores
-	userStore := userstorememory.New()
-
 	// Protected routes
 	r.Group(func(r chi.Router) {
 		// Seekd, verify and validate JWT tokens
-		r.Use(jwtauth.Verifier(tokenAuth))
+		// r.Use(jwtauth.Verifier(tokenAuth))
 
 		// Note: jwtauth.Authenticator should be
 		// added by different routes. For example,
 		// some routes allow GET and disallow POST
 
+		// Initialize Model Stores
+		userStore := userstore.New(db)
 		r.Mount("/users", usersresource.New(userStore, tokenAuth))
 	})
 
@@ -109,33 +112,34 @@ func router() http.Handler {
 	return r
 }
 
-// func getUserModelDB() *sql.DB {
-// 	connStr := fmt.Sprintf(
-// 		"server=%s;user id=%s;password=%s;database=%s;",
-// 		"localhost\\mssql2016express",
-// 		"sa",
-// 		"sa",
-// 		"harper",
-// 	)
-// 	db, err := sql.Open("mssql", connStr)
-// 	if err != nil {
-// 		log.Fatal(err)
-// 	}
+func getUserModelDB() *gorm.DB {
+	connStr := fmt.Sprintf(
+		"server=%s;user id=%s;password=%s;database=%s;",
+		"localhost\\mssql2016express",
+		"sa",
+		"sa",
+		"harper",
+	)
 
-// 	var (
-// 		sqlVersion string
-// 	)
-// 	rows, err := db.Query("select @@version")
-// 	if err != nil {
-// 		log.Fatal(err)
-// 	}
-// 	for rows.Next() {
-// 		err := rows.Scan(&sqlVersion)
-// 		if err != nil {
-// 			log.Fatal(err)
-// 		}
-// 		log.Println(sqlVersion)
-// 	}
+	db, err := gorm.Open("mssql", connStr)
+	if err != nil {
+		log.Fatal(err)
+	}
 
-// 	return db
-// }
+	var (
+		sqlVersion string
+	)
+	rows, err := db.DB().Query("select @@version")
+	if err != nil {
+		log.Fatal(err)
+	}
+	for rows.Next() {
+		err := rows.Scan(&sqlVersion)
+		if err != nil {
+			log.Fatal(err)
+		}
+		log.Println(sqlVersion)
+	}
+
+	return db
+}
