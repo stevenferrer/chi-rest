@@ -136,6 +136,8 @@ func TestGetByEmail(t *testing.T) {
 		t.Fatal(err)
 	}
 
+	// TODO: update this, get is missing here
+
 	if sameUser1.Email != user1.Email {
 		t.Fatalf("expected same user email got different: %s != %s", user1.Email, sameUser1.Email)
 	}
@@ -145,4 +147,112 @@ func TestGetByEmail(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
+}
+
+func TestGetByID(t *testing.T) {
+
+}
+
+func TestUpdateByEmail(t *testing.T) {
+	db, err := getDb()
+	if err != nil {
+		t.Fatal(err)
+	}
+	// migrate
+	err = db.AutoMigrate(new(usermodel.User)).Error
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	store := New(db)
+
+	user1 := usermodel.User{
+		Email:    "user1@example.com",
+		Password: []byte("user1"),
+	}
+
+	sameUser1, err := store.Create(user1)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	// save old email
+	oldEmail := sameUser1.Email
+	//change email
+	sameUser1.Email = "newuser1@example.com"
+	sameUser1.Password = []byte("newuser1")
+
+	newUser1, err := store.UpdateByEmail(oldEmail, sameUser1)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if newUser1.Email == oldEmail {
+		t.Fatalf("expected different emails got: %v == %v", sameUser1.Email, newUser1.Email)
+	}
+
+	// hide password
+	newUser1.Password = []byte("")
+
+	t.Logf("%+v\n", newUser1)
+
+	// delete test data
+	err = db.Unscoped().Delete(&user1).Error
+	if err != nil {
+		t.Fatal(err)
+	}
+}
+
+func TestUpdateByID(t *testing.T) {
+	db, err := getDb()
+	if err != nil {
+		t.Fatal(err)
+	}
+	// migrate
+	err = db.AutoMigrate(new(usermodel.User)).Error
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	store := New(db)
+
+	user1 := usermodel.User{
+		Email:    "user1@example.com",
+		Password: []byte("user1"),
+	}
+
+	sameUser1, err := store.Create(user1)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	// save old email
+	oldEmail := sameUser1.Email
+	//change email
+	sameUser1.Email = "newuser1@example.com"
+	sameUser1.Password = []byte("newuser1")
+
+	newUser1, err := store.UpdateByID(sameUser1.ID, sameUser1)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if newUser1.Email == oldEmail {
+		t.Fatalf("expected different emails got: %v == %v", sameUser1.Email, newUser1.Email)
+	}
+
+	// hide password
+	newUser1.Password = []byte("")
+
+	t.Logf("%+v\n", newUser1)
+
+	// delete test data
+	err = db.Unscoped().Delete(&user1).Error
+	if err != nil {
+		t.Fatal(err)
+	}
+}
+
+func TestDelete(t *testing.T) {
+
 }

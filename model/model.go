@@ -6,7 +6,7 @@ import (
 
 type Model struct {
 	ID        uint64     `json:"id" gorm:"primary_key" json:"id,omitempty`
-	CreatedAt time.Time  `json:"-"`
-	UpdatedAt time.Time  `json:"-"`
-	DeletedAt *time.Time `json:"-"`
+	CreatedAt time.Time  `json:"createdAt"`
+	UpdatedAt time.Time  `json:"updatedAt"`
+	DeletedAt *time.Time `json:"deletedAt,omitempty"`
 }
