@@ -13,21 +13,21 @@ import (
 //		Maybe look at other golang packages for ideas
 
 type UserResponse struct {
-	User    *usermodel.User `json:"user"`
-	Message string          `json:"message,omitempty"`
+	*usermodel.User
+	Message string `json:"message,omitempty"`
 }
 
 func (ur *UserResponse) Render(w http.ResponseWriter, r *http.Request) error {
 	// hide user password
-	ur.User.Password = ""
+	ur.Password = []byte("")
 	return nil
 }
 
 func NewUserResponse(user usermodel.User) *UserResponse {
-	return &UserResponse{User: &user}
+	return &UserResponse{
+		User: &user,
+	}
 }
-
-type UserListResponse []*UserResponse
 
 func NewUserListResponse(users []usermodel.User) []render.Renderer {
 	list := []render.Renderer{}

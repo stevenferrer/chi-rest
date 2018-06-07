@@ -1,6 +1,11 @@
 package user
 
 import (
+	"errors"
+
+	validation "github.com/go-ozzo/ozzo-validation"
+	is "github.com/go-ozzo/ozzo-validation/is"
+
 	model "github.com/moqafi/harper/model"
 )
 
@@ -10,30 +15,18 @@ type User struct {
 	Password []byte `json:"password,omitempty" gorm:"not null"`
 }
 
-// Storer shall be implemented by database stores
-type Storer interface {
-	List(filter ...Filter) ([]User, error)
-	GetByID(id uint64) (User, error)
-	GetByEmail(email string) (User, error)
-
-	// in create, update, and delete methods return user
-	Create(User) (User, error)
-	UpdateByID(id uint64, u User) (User, error)
-	UpdateByEmail(email string, u User) (User, error)
-	Delete(User) (User, error)
+func (u User) Validate() error {
+	return validation.ValidateStruct(&u,
+		validation.Field(&u.Email, validation.Required, is.Email),
+		validation.Field(&u.Password, validation.Required, validation.By(minPwdLen)),
+	)
 }
 
-// Filter is used for filtering results
-type Filter func(*FilterConfig) error
-
-type FilterConfig struct {
-	//User // easy method, inherit all User fields
-	ID int64
-}
-
-func IDFilter(id int64) Filter {
-	return func(fc *FilterConfig) error {
-		fc.ID = id
-		return nil
+// minPwdLen validation for minimum password length
+func minPwdLen(value interface{}) error {
+	pwd, _ := value.([]byte)
+	if len(pwd) < 8 {
+		return errors.New("should be at least 8 characters")
 	}
+	return nil
 }

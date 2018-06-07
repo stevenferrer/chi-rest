@@ -12,11 +12,11 @@ func TestStoreList(t *testing.T) {
 	store := New()
 	user1 := usermodel.User{
 		Email:    "user1@example.com",
-		Password: []byte("user1"),
+		Password: []byte("user1user1user1"),
 	}
 	user2 := usermodel.User{
 		Email:    "user2@example.com",
-		Password: []byte("user2"),
+		Password: []byte("user2user2user2"),
 	}
 
 	user1, _ = store.Create(user1)
@@ -36,11 +36,11 @@ func TestStoreCreate(t *testing.T) {
 	store := New()
 	user1 := usermodel.User{
 		Email:    "user1@example.com",
-		Password: []byte("user1"),
+		Password: []byte("user1user1"),
 	}
 	user2 := usermodel.User{
 		Email:    "user2@example.com",
-		Password: []byte("user2"),
+		Password: []byte("user2user2user2"),
 	}
 
 	user1, _ = store.Create(user1)
@@ -62,7 +62,7 @@ func TestStoreGet(t *testing.T) {
 
 	user1 := usermodel.User{
 		Email:    "user1@example.com",
-		Password: []byte("user1"),
+		Password: []byte("user1user1user1"),
 	}
 	user1, _ = store.Create(user1)
 
@@ -81,7 +81,7 @@ func TestStoreUpdate(t *testing.T) {
 
 	user1 := usermodel.User{
 		Email:    "user1@example.com",
-		Password: []byte("user1"),
+		Password: []byte("user1user1user1"),
 	}
 	user1, _ = store.Create(user1)
 
@@ -103,7 +103,7 @@ func TestStoreDelete(t *testing.T) {
 
 	user1 := usermodel.User{
 		Email:    "user1@example.com",
-		Password: []byte("user1"),
+		Password: []byte("user1user1user1"),
 	}
 	user1, _ = store.Create(user1)
 
@@ -116,4 +116,20 @@ func TestStoreDelete(t *testing.T) {
 	if err == nil {
 		t.Error("Expecting error because user1 is not in the store")
 	}
+}
+
+func TestValidate(t *testing.T) {
+	store := New()
+	var err error
+
+	user1 := usermodel.User{
+		Email:    "user1example.com",
+		Password: []byte("user1"),
+	}
+	user1, err = store.Create(user1)
+	if err == nil {
+		t.Error("expecting non-error invalid email")
+	}
+
+	t.Logf("validation ok: %v", err)
 }

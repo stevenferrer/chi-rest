@@ -12,3 +12,4 @@ For example, **user/bbolt**, **user/memory** etc.
 
 * Write tests for stores
 * Create error types
+* validation should be implemented by store implementations

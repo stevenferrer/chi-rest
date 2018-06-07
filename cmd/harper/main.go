@@ -19,7 +19,7 @@ import (
 
 	"github.com/moqafi/harper/middleware/logger"
 	usersresource "github.com/moqafi/harper/resource/users"
-	userstore "github.com/moqafi/harper/store/user/mssql"
+	userstore "github.com/moqafi/harper/store/user/memory"
 )
 
 // TODO: Move this out of global scope
@@ -53,8 +53,9 @@ func Run() {
 
 	go func() {
 		log.Printf("Server running on %s\n", addr)
-		db := getUserModelDB()
-		defer db.Close()
+		//		db := getUserModelDB()
+		//		defer db.Close()
+		var db *gorm.DB
 		errs <- http.ListenAndServe(addr, router(db))
 	}()
 
@@ -94,7 +95,7 @@ func router(db *gorm.DB) http.Handler {
 		// some routes allow GET and disallow POST
 
 		// Initialize Model Stores
-		userStore := userstore.New(db)
+		userStore := userstore.New()
 		r.Mount("/users", usersresource.New(userStore, tokenAuth))
 	})
 

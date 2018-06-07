@@ -2,6 +2,9 @@
 
 Boilerplate for REST service using go-chi. This project uses the concept of database agnostic user models by implementing storer interface for the model. 
 
+## TODO
+* improve errors in validation
+
 ## Dependencies
 
 	* github.com/pilu/fresh
@@ -14,6 +17,7 @@ Boilerplate for REST service using go-chi. This project uses the concept of data
 	* github.com/josharian/impl - interface implementation generator
 	* github.com/jinzhu/gorm - ORM
 	* github.com/go-gormigrate/gormigrate - database migration
+	* github.com/go-ozzo/ozzo-validation - struct validation. why this and not other validation package that use struct tags? i really like the concept of this validation package. it doesn't use struct tags and that's what makes it (IMO) superior to others!
 
 ## Running
 `go get` all dependencies before anything else then run:

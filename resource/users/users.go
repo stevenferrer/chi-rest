@@ -26,7 +26,7 @@ func createDummyUsers() []usermodel.User {
 	for i := 0; i < 10; i++ {
 		u := usermodel.User{
 			Email:    fmt.Sprintf("sample%d@example.com", i+1),
-			Password: fmt.Sprintf("sample%d", i+1),
+			Password: []byte(fmt.Sprintf("sample%d", i+1)),
 		}
 		users = append(users, u)
 	}
@@ -35,10 +35,10 @@ func createDummyUsers() []usermodel.User {
 }
 
 func New(store usermodel.Storer, tokenAuth *jwtauth.JWTAuth) chi.Router {
-	// users := createDummyUsers()
-	// for _, u := range users {
-	// 	store.Create(u)
-	// }
+	users := createDummyUsers()
+	for _, u := range users {
+		_, _ = store.Create(u)
+	}
 
 	rs := usersResource{
 		store:     store,
@@ -91,8 +91,8 @@ func (rs *usersResource) routes() chi.Router {
 	r := chi.NewRouter()
 	// r.Use() // some middleware..
 
-	r.Get("/", rs.list)      // GET /users - read a list of users
-	r.Post("/auth", rs.auth) // jwt token auth
+	r.Get("/", rs.list) // GET /users - read a list of users
+	//	r.Post("/auth", rs.auth) // jwt token auth
 
 	r.Route("/", func(r chi.Router) {
 		//uncomment to enable jwt
@@ -134,13 +134,13 @@ func (rs *usersResource) create(w http.ResponseWriter, r *http.Request) {
 
 	user := data.User
 
-	err := rs.store.Create(*user)
+	u, err := rs.store.Create(*user)
 	if err != nil {
 		render.Render(w, r, ErrInvalidRequest(err))
 		return
 	}
 	render.Status(r, http.StatusCreated)
-	render.Render(w, r, &UserResponse{User: user, Message: "User has been created"})
+	render.Render(w, r, &UserResponse{User: &u, Message: "User has been created"})
 }
 
 func (rs *usersResource) get(w http.ResponseWriter, r *http.Request) {
@@ -168,56 +168,56 @@ func (rs *usersResource) update(w http.ResponseWriter, r *http.Request) {
 	// set the original id
 	user.ID = usr.ID
 
-	err := rs.store.UpdateByID(user.ID, *user)
+	u, err := rs.store.UpdateByID(user.ID, *user)
 	if err != nil {
 		render.Render(w, r, ErrInvalidRequest(err))
 		return
 	}
 	render.Status(r, http.StatusCreated)
-	render.Render(w, r, &UserResponse{User: user, Message: "User has been updated"})
+	render.Render(w, r, &UserResponse{User: &u, Message: "User has been updated"})
 }
 
 func (rs *usersResource) delete(w http.ResponseWriter, r *http.Request) {
 	usr := r.Context().Value(userKey).(*usermodel.User)
 
-	err := rs.store.Delete(*usr)
+	u, err := rs.store.Delete(*usr)
 	if err != nil {
 		render.Render(w, r, ErrInvalidRequest(err))
 		return
 	}
 
 	render.Status(r, http.StatusOK)
-	render.Render(w, r, &UserResponse{User: usr, Message: "User has been deleted"})
+	render.Render(w, r, &UserResponse{User: &u, Message: "User has been deleted"})
 }
 
 func (rs *usersResource) auth(w http.ResponseWriter, r *http.Request) {
-	data := &UserRequest{}
-	if err := render.Bind(r, data); err != nil {
-		render.Render(w, r, ErrInvalidRequest(err))
-		return
-	}
+	//	data := &UserRequest{}
+	//	if err := render.Bind(r, data); err != nil {
+	//		render.Render(w, r, ErrInvalidRequest(err))
+	//		return
+	//	}
 
-	authUser := data.User
+	//	authUser := data.User
 
-	user, err := rs.store.GetByEmail(authUser.Email)
-	if err != nil {
-		render.Render(w, r, ErrInvalidRequest(err))
-		return
-	}
+	//	user, err := rs.store.GetByEmail(authUser.Email)
+	//	if err != nil {
+	//		render.Render(w, r, ErrInvalidRequest(err))
+	//		return
+	//	}
 
-	if user.Password != authUser.Password {
-		render.Render(w, r, ErrInvalidRequest(errors.New("User authentication failed")))
-		return
-	}
+	//	if user.Password != authUser.Password {
+	//		render.Render(w, r, ErrInvalidRequest(errors.New("User authentication failed")))
+	//		return
+	//	}
 
-	_, tokenString, err := rs.tokenAuth.Encode(jwtauth.Claims{
-		"userId": user.ID,
-		"email":  user.Email,
-	})
-	if err != nil {
-		render.Render(w, r, ErrRender(err))
-		return
-	}
+	//	_, tokenString, err := rs.tokenAuth.Encode(jwtauth.Claims{
+	//		"userId": user.ID,
+	//		"email":  user.Email,
+	//	})
+	//	if err != nil {
+	//		render.Render(w, r, ErrRender(err))
+	//		return
+	//	}
 
-	rs.r.JSON(w, http.StatusOK, map[string]string{"token": tokenString})
+	//	rs.r.JSON(w, http.StatusOK, map[string]string{"token": tokenString})
 }

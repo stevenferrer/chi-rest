@@ -1,7 +1,7 @@
 package users
 
 import (
-	"errors"
+	"encoding/json"
 	"net/http"
 
 	usermodel "github.com/moqafi/harper/model/user"
@@ -11,14 +11,24 @@ type UserRequest struct {
 	*usermodel.User
 }
 
-// Bind validates required fields and values
-func (ur *UserRequest) Bind(r *http.Request) error {
-	if ur.Email == "" {
-		return errors.New("email is required")
+func (ur *UserRequest) UnmarshalJSON(data []byte) error {
+	var v map[string]interface{}
+	if err := json.Unmarshal(data, &v); err != nil {
+		return err
 	}
 
-	if ur.Password == "" {
-		return errors.New("password is required")
-	}
+	var u usermodel.User
+
+	u.Email = v["email"].(string)
+	u.Password = []byte(v["password"].(string))
+
+	ur.User = &u
+
 	return nil
+}
+
+// Bind validates required fields and values
+func (ur *UserRequest) Bind(r *http.Request) error {
+	err := ur.User.Validate()
+	return err
 }
