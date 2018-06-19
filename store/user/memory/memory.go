@@ -9,7 +9,7 @@ import (
 )
 
 // New returns a new usermodel.Storer
-func New() usermodel.Storer {
+func New() *Store {
 	users := make([]usermodel.User, 0)
 	return &Store{users: users}
 }
@@ -58,6 +58,9 @@ func (s *Store) GetByEmail(email string) (usermodel.User, error) {
 // Create creates a new user
 func (s *Store) Create(u usermodel.User) (usermodel.User, error) {
 	var user usermodel.User
+	if err := u.Validate(); err != nil {
+		return user, err
+	}
 
 	if s.isUserEmailInStore(u.Email) {
 		return user, errors.New("User email already in store")

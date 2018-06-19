@@ -128,7 +128,7 @@ func TestValidate(t *testing.T) {
 	}
 	user1, err = store.Create(user1)
 	if err == nil {
-		t.Error("expecting non-error invalid email")
+		t.Errorf("expecting non-error invalid email got: %v\n", err)
 	}
 
 	t.Logf("validation ok: %v", err)
