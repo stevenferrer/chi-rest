@@ -7,7 +7,7 @@ Boilerplate for REST service using go-chi. This project uses the concept of data
 
 ## Dependencies
 
-	* github.com/pilu/fresh
+	* github.com/oxequa/realize
 	* github.com/go-chi/chi
 	* github.com/go-chi/render
 	* github.com/go-chi/middleware
@@ -22,7 +22,7 @@ Boilerplate for REST service using go-chi. This project uses the concept of data
 ## Running
 `go get` all dependencies before anything else then run:
     
-    $ fresh
+    $ realize start
 
 ## Tools that might be needed for convenience
 

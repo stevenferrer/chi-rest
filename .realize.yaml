@@ -1,0 +1,27 @@
+settings:
+  legacy:
+    force: false
+    interval: 100ms
+schema:
+- name: harper
+  path: .
+  commands:
+    fmt:
+      status: true
+      args:
+        - -s
+        - -w
+    build:
+      status: true
+      method: go build
+      args:
+      - -race
+  watcher:
+    extensions:
+    - go
+    paths:
+    - /
+    ignored_paths:
+    - .git
+    - .realize
+    - vendor
