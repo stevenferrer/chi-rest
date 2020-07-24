@@ -111,6 +111,6 @@ func (s *Store) Delete(user usermodel.User) (usermodel.User, error) {
 	if err != nil {
 		return user, err
 	}
-	err := s.db.Delete(&user).Error
+	err = s.db.Delete(&user).Error
 	return user, err
 }

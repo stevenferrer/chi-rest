@@ -9,6 +9,7 @@ import (
 	"syscall"
 	"time"
 
+	jwt "github.com/dgrijalva/jwt-go"
 	"github.com/go-chi/chi"
 	"github.com/go-chi/chi/middleware"
 	"github.com/go-chi/jwtauth"
@@ -31,7 +32,7 @@ func init() {
 
 	// For debugging/example purposes, we generate and print
 	// a sample jwt token with claims `user_id:123` here:
-	_, tokenString, _ := tokenAuth.Encode(jwtauth.Claims{
+	_, tokenString, _ := tokenAuth.Encode(jwt.MapClaims{
 		"userId": 1,
 		"email":  "foo@bar.com",
 	})
@@ -46,7 +47,7 @@ func Run() {
 
 	errs := make(chan error)
 	go func() {
-		c := make(chan os.Signal)
+		c := make(chan os.Signal, 1)
 		signal.Notify(c, syscall.SIGINT, syscall.SIGTERM)
 		errs <- fmt.Errorf("%s", <-c)
 	}()
@@ -111,36 +112,4 @@ func router(db *gorm.DB) http.Handler {
 	})
 
 	return r
-}
-
-func getUserModelDB() *gorm.DB {
-	connStr := fmt.Sprintf(
-		"server=%s;user id=%s;password=%s;database=%s;",
-		"localhost\\mssql2016express",
-		"sa",
-		"sa",
-		"chi-rest",
-	)
-
-	db, err := gorm.Open("mssql", connStr)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	var (
-		sqlVersion string
-	)
-	rows, err := db.DB().Query("select @@version")
-	if err != nil {
-		log.Fatal(err)
-	}
-	for rows.Next() {
-		err := rows.Scan(&sqlVersion)
-		if err != nil {
-			log.Fatal(err)
-		}
-		log.Println(sqlVersion)
-	}
-
-	return db
 }

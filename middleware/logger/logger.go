@@ -55,7 +55,7 @@ type StructuredLoggerEntry struct {
 	Logger logrus.FieldLogger
 }
 
-func (l *StructuredLoggerEntry) Write(status, bytes int, elapsed time.Duration) {
+func (l *StructuredLoggerEntry) Write(status, bytes int, _ http.Header, elapsed time.Duration, _ interface{}) {
 	l.Logger = l.Logger.WithFields(logrus.Fields{
 		"resp_status":       status,
 		"resp_status_text":  http.StatusText(status),
