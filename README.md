@@ -1,4 +1,4 @@
-# Harper 
+# Chi-rest
 
 Boilerplate for REST service using go-chi. This project uses the concept of database agnostic user models by implementing storer interface for the model. 
 
@@ -37,4 +37,4 @@ Boilerplate for REST service using go-chi. This project uses the concept of data
 ### Generating Storer interface stub
 Below is an example of generating Storer interface sub. 
 
-	$ impl "s *Store" github.com/moqafi/harper/model/user.Storer >> ./store/user/mssql/mssql.go
+	$ impl "s *Store" github.com/sf9v/harper/model/user.Storer >> ./store/user/mssql/mssql.go

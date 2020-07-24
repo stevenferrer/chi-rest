@@ -5,7 +5,7 @@ import (
 
 	"github.com/go-chi/render"
 
-	usermodel "github.com/moqafi/harper/model/user"
+	usermodel "github.com/sf9v/harper/model/user"
 )
 
 // TODO: Create a Generic response struct that

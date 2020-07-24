@@ -8,7 +8,7 @@ import (
 	"github.com/jinzhu/gorm"
 	_ "github.com/jinzhu/gorm/dialects/mssql"
 
-	usermodel "github.com/moqafi/harper/model/user"
+	usermodel "github.com/sf9v/harper/model/user"
 )
 
 func getDb() (*gorm.DB, error) {

@@ -1,7 +1,7 @@
 package main
 
 import (
-	"github.com/moqafi/harper/cmd/harper"
+	"github.com/sf9v/harper/cmd/harper"
 )
 
 func main() {

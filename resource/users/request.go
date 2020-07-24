@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"net/http"
 
-	usermodel "github.com/moqafi/harper/model/user"
+	usermodel "github.com/sf9v/harper/model/user"
 )
 
 type UserRequest struct {
