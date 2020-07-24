@@ -8,7 +8,7 @@ import (
 	"github.com/jinzhu/gorm"
 	_ "github.com/jinzhu/gorm/dialects/mssql"
 
-	usermodel "github.com/sf9v/harper/model/user"
+	usermodel "github.com/sf9v/chi-rest/model/user"
 )
 
 func getDb() (*gorm.DB, error) {
@@ -17,7 +17,7 @@ func getDb() (*gorm.DB, error) {
 		"localhost\\mssql2016express",
 		"sa",
 		"sa",
-		"harper",
+		"chi-rest",
 	)
 
 	db, err := gorm.Open("mssql", connStr)

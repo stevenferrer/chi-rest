@@ -6,7 +6,7 @@ import (
 	validation "github.com/go-ozzo/ozzo-validation"
 	is "github.com/go-ozzo/ozzo-validation/is"
 
-	model "github.com/sf9v/harper/model"
+	model "github.com/sf9v/chi-rest/model"
 )
 
 type User struct {

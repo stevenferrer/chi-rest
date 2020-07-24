@@ -10,8 +10,6 @@ require (
 	github.com/go-chi/render v1.0.1
 	github.com/go-ozzo/ozzo-validation v3.6.0+incompatible
 	github.com/jinzhu/gorm v1.9.15
-	github.com/moqafi/harper v0.0.0-20180620100247-d19cd111d06c
-	github.com/sf9v/harper v0.0.0-20180620100247-d19cd111d06c
 	github.com/sirupsen/logrus v1.6.0
 	github.com/unrolled/render v1.0.3
 	golang.org/x/crypto v0.0.0-20200709230013-948cd5f35899

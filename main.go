@@ -1,9 +1,9 @@
 package main
 
 import (
-	"github.com/sf9v/harper/cmd/harper"
+	"github.com/sf9v/chi-rest/cmd/api"
 )
 
 func main() {
-	harper.Run()
+	api.Run()
 }

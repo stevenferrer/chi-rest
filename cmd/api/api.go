@@ -1,4 +1,4 @@
-package harper
+package api
 
 import (
 	"fmt"
@@ -17,9 +17,9 @@ import (
 	_ "github.com/jinzhu/gorm/dialects/mssql"
 	"github.com/sirupsen/logrus"
 
-	"github.com/sf9vi/harper/middleware/logger"
-	usersresource "github.com/sf9vi/harper/resource/users"
-	userstore "github.com/sf9vi/harper/store/user/memory"
+	"github.com/sf9v/chi-rest/middleware/logger"
+	usersresource "github.com/sf9v/chi-rest/resource/users"
+	userstore "github.com/sf9v/chi-rest/store/user/memory"
 )
 
 // TODO: Move this out of global scope
@@ -119,7 +119,7 @@ func getUserModelDB() *gorm.DB {
 		"localhost\\mssql2016express",
 		"sa",
 		"sa",
-		"harper",
+		"chi-rest",
 	)
 
 	db, err := gorm.Open("mssql", connStr)

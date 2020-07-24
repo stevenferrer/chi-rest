@@ -3,7 +3,7 @@ settings:
     force: false
     interval: 100ms
 schema:
-- name: harper
+- name: chi-rest
   path: .
   commands:
     fmt:

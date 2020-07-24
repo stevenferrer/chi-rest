@@ -12,7 +12,7 @@ import (
 	"github.com/go-chi/render"
 	urender "github.com/unrolled/render"
 
-	usermodel "github.com/sf9v/harper/model/user"
+	usermodel "github.com/sf9v/chi-rest/model/user"
 )
 
 // TODO: make resource handlers private

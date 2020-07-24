@@ -5,7 +5,7 @@ import (
 
 	"golang.org/x/crypto/bcrypt"
 
-	usermodel "github.com/sf9v/harper/model/user"
+	usermodel "github.com/sf9v/chi-rest/model/user"
 )
 
 func TestStoreList(t *testing.T) {
