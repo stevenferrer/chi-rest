@@ -4,7 +4,7 @@ import (
 	"github.com/jinzhu/gorm"
 	"golang.org/x/crypto/bcrypt"
 
-	usermodel "github.com/sf9v/chi-rest/model/user"
+	usermodel "github.com/stevenferrer/chi-rest/model/user"
 )
 
 func New(db *gorm.DB) usermodel.Storer {

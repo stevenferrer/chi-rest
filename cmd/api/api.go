@@ -9,18 +9,18 @@ import (
 	"syscall"
 	"time"
 
-	jwt "github.com/dgrijalva/jwt-go"
-	"github.com/go-chi/chi"
-	"github.com/go-chi/chi/middleware"
+	"github.com/go-chi/chi/v5"
+	"github.com/go-chi/chi/v5/middleware"
 	"github.com/go-chi/jwtauth"
 	"github.com/go-chi/render"
+	jwt "github.com/golang-jwt/jwt/v4"
 	"github.com/jinzhu/gorm"
 	_ "github.com/jinzhu/gorm/dialects/mssql"
 	"github.com/sirupsen/logrus"
 
-	"github.com/sf9v/chi-rest/middleware/logger"
-	usersresource "github.com/sf9v/chi-rest/resource/users"
-	userstore "github.com/sf9v/chi-rest/store/user/memory"
+	"github.com/stevenferrer/chi-rest/middleware/logger"
+	usersresource "github.com/stevenferrer/chi-rest/resource/users"
+	userstore "github.com/stevenferrer/chi-rest/store/user/memory"
 )
 
 // TODO: Move this out of global scope

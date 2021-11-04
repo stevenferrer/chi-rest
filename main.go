@@ -1,7 +1,7 @@
 package main
 
 import (
-	"github.com/sf9v/chi-rest/cmd/api"
+	"github.com/stevenferrer/chi-rest/cmd/api"
 )
 
 func main() {

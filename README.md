@@ -8,7 +8,7 @@ Boilerplate for REST service using go-chi. This project uses the concept of data
 ## Dependencies
 
 	* github.com/oxequa/realize
-	* github.com/go-chi/chi
+	* github.com/go-chi/chi/v5
 	* github.com/go-chi/render
 	* github.com/go-chi/middleware
 	* github.com/go-chi/jwtauth
@@ -37,4 +37,4 @@ Boilerplate for REST service using go-chi. This project uses the concept of data
 ### Generating Storer interface stub
 Below is an example of generating Storer interface sub. 
 
-	$ impl "s *Store" github.com/sf9v/chi-rest/model/user.Storer >> ./store/user/mssql/mssql.go
+	$ impl "s *Store" github.com/stevenferrer/chi-rest/model/user.Storer >> ./store/user/mssql/mssql.go

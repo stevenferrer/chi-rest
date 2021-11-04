@@ -5,7 +5,7 @@ import (
 
 	"golang.org/x/crypto/bcrypt"
 
-	usermodel "github.com/sf9v/chi-rest/model/user"
+	usermodel "github.com/stevenferrer/chi-rest/model/user"
 )
 
 // New returns a new usermodel.Storer

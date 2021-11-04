@@ -7,12 +7,12 @@ import (
 	"net/http"
 	"strconv"
 
-	"github.com/go-chi/chi"
+	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/jwtauth"
 	"github.com/go-chi/render"
 	urender "github.com/unrolled/render"
 
-	usermodel "github.com/sf9v/chi-rest/model/user"
+	usermodel "github.com/stevenferrer/chi-rest/model/user"
 )
 
 // TODO: make resource handlers private

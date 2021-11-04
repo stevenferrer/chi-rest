@@ -3,10 +3,10 @@ package user
 import (
 	"errors"
 
-	validation "github.com/go-ozzo/ozzo-validation"
-	is "github.com/go-ozzo/ozzo-validation/is"
+	validation "github.com/go-ozzo/ozzo-validation/v4"
+	is "github.com/go-ozzo/ozzo-validation/v4/is"
 
-	model "github.com/sf9v/chi-rest/model"
+	model "github.com/stevenferrer/chi-rest/model"
 )
 
 type User struct {

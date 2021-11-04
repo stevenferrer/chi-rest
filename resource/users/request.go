@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"net/http"
 
-	usermodel "github.com/sf9v/chi-rest/model/user"
+	usermodel "github.com/stevenferrer/chi-rest/model/user"
 )
 
 type UserRequest struct {
